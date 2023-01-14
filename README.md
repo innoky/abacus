@@ -1,2 +1,42 @@
-# abacus
-A set of tools for solving mathematical problems
+
+![Logo](https://innoky.github.io/images/Frame139.png)
+
+
+# HS Abacus / Telegram Bot
+
+HS Abacus - проект специализирующийся на разработке 
+программного обеспечения и  интерфейсов предоставляющих 
+возможность быстро вычислять нестандартные 
+математические задачи.
+
+
+## Вспомогательные ресурсы и библиотеки
+
+ - [Matplotlib](https://matplotlib.org/)
+ - [NumPy](https://numpy.org/)
+ - [pyTelegramBotApi](https://github.com/eternnoir/pyTelegramBotAPI)
+
+
+## Установка и запуск
+
+Открываем терминал в нужной нам папке и прописываем следующую команду в bash:
+
+
+```bash
+  git clone https://github.com/innoky/Abacus_bot.git
+```
+Запуск производим через команду :
+```bash
+cd Abacus_bot
+python3 main.py
+```
+
+## Подфункции
+
+- Взятие интеграла (приближенное значение)
+- Отрисовка графика функции (изображение)
+- Нахождение корней (значения x где функции достигает нуля)
+- Взятие производной  ~ в разработке
+- Подсчет предела функции ~ в разработке
+
+В файлах integral.py, roots.py, graphdraw.py, находятся скрипты отвечающие за функции написанные в их названиях. Вызов этих скриптов производиться через main.py.
