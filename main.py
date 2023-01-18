@@ -51,7 +51,13 @@ def welcome(message):
 def lalala(message):
     if message.chat.type == 'private':
 
-        if "y" or "x" or "y(x)" in message.text:
+        if message.text == "Alice":
+            bot.send_message(message.chat.id, '''
+Говорят, что биссектриса
+Делит угол на две части.
+Знаю я, что нас с Алисой
+Разделить никто не властен.''')
+        elif "y" or "x" or "y(x)" in message.text:
             if ("sin" or "cos" or "tan") in message.text:
                 bot.send_message(message.chat.id, "<em>Функция переодическая, корни могут иметь период повторения</em>", parse_mode ='html')
             global get_message
