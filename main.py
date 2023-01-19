@@ -10,7 +10,7 @@ from PIL import Image
 import numpy as np
 
 from sympy.solvers import solve
-from sympy import Symbol, diff, cos, sin, tan, sqrt
+from sympy import Symbol, diff, cos, sin, tan, sqrt, sympify
 
 import telebot
 
@@ -58,6 +58,10 @@ def lalala(message):
 Делит угол на две части.
 Знаю я, что нас с Алисой
 Разделить никто не властен.''')
+        elif message.text == "DT":
+            bot.send_message(message.chat.id, '''
+            🥃🥃
+            ''')
         elif "y" or "x" or "y(x)" in message.text:
             global get_message
             if ("sin" or "cos" or "tan") in message.text:
@@ -178,7 +182,7 @@ except SyntaxError:
                 bot.send_photo(call.message.chat.id, open('graphs/graphdraw.png', 'rb'));
 
             elif call.data == '3':
-                clear_equat = ("y" + get_message.replace("^", "**").replace("y(x)=", "").replace("y=", "")).replace("y=", "")
+                clear_equat = (get_message.replace("^", "**").replace("y(x)=", "").replace("y=", "")).replace("y=", "")
                 x = Symbol('x')
                 send_data_arr = solve(clear_equat, x)
                 send_data = '\n'.join("x = " + str(value) for value in send_data_arr).replace("sqrt", "√")
@@ -199,7 +203,7 @@ except SyntaxError:
                     bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text="Действительные корни отсутвуют, показать комплексные?",
                         reply_markup=markup_com)
                 else:
-                    bot.send_message(call.message.chat.id, f"<code>{send_data}</code>")
+                    bot.send_message(call.message.chat.id, f"<code>{send_data}</code>", parse_mode="html")
 
             elif call.data == '4':
                 upload_eq = "result = (diff(" + get_message.replace("y=", "").replace("^","**").replace("y(x)", "").replace("=", "") + "))"
