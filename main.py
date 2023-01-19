@@ -5,6 +5,7 @@ import os
 import subprocess
 import sys
 import os.path
+from pylatexenc.latex2text import LatexNodes2Text
 from PIL import Image
 import numpy as np
 
@@ -58,10 +59,13 @@ def lalala(message):
 Знаю я, что нас с Алисой
 Разделить никто не властен.''')
         elif "y" or "x" or "y(x)" in message.text:
+            global get_message
             if ("sin" or "cos" or "tan") in message.text:
                 bot.send_message(message.chat.id, "<em>Функция переодическая, корни могут иметь период повторения</em>", parse_mode ='html')
-            global get_message
-            get_message = message.text.lower().replace(" ","")
+            if "\\" in message.text:
+                get_message = LatexNodes2Text().latex_to_text(message.text.replace("\\"+"dfrac", "\\"+"frac")).lower().replace(" ","")
+            else:
+                get_message = message.text.lower().replace(" ","")
             get_message = get_message.replace("0x", "0*x").replace("1x", "1*x").replace("2x", "2*x").replace("3x", "3*x").replace("4x", "4*x").replace("5x", "5*x").replace("6x", "6*x").replace("7x", "7*x").replace("8x", "8*x").replace("9x", "9*x")
             get_message = get_message.replace("0(","0*(").replace("1(","1*(").replace("2(","2*(").replace("3(","3*(").replace("4(","4*(").replace("5(","5*(").replace("6(","6*(").replace("7(","7*(").replace("8(","8*(").replace("9(","9*(")
             get_message = get_message.replace(")(",")*(").replace("x(","x*(")
