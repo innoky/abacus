@@ -51,17 +51,98 @@ def welcome(message):
 
 def lalala(message):
     if message.chat.type == 'private':
-
+#________________________________________________________________________________________________________________
         if message.text == "Alice":
-            bot.send_message(message.chat.id, '''
-Говорят, что биссектриса
-Делит угол на две части.
-Знаю я, что нас с Алисой
-Разделить никто не властен.''')
-        elif message.text == "DT":
-            bot.send_message(message.chat.id, '''
-            🥃🥃
+            messagetoedit = bot.send_message(message.chat.id, '''
+　 　∧,,,∧
+　 （ ・ω・） I love Alice!
+　　( つ旦O
+　　と＿)_)
+        ''')
+            time.sleep(1)
+            for _ in range(30):
+                bot.edit_message_text(chat_id=message.chat.id, message_id=messagetoedit.message_id, text='''
+　 　∧,,,∧
+　 （ ・◎・） slrrrp
+　　(　ﾞノ ヾ
+　　と＿)_)
             ''')
+                time.sleep(1)
+                bot.edit_message_text(chat_id=message.chat.id, message_id=messagetoedit.message_id, text='''
+　　 ∧,,,∧
+　 （ ・ω・） Hmm, she is beautiful...
+　　( つ旦O
+　　と＿)_)
+            ''')
+                time.sleep(2)
+                bot.edit_message_text(chat_id=message.chat.id, message_id=messagetoedit.message_id, text='''
+　　∧,,,∧
+　 （ ・ω・）
+　　( つ　O. __
+　　と＿)_) （__(）､;.o：。
+　　　　　　　　　　ﾟ*･:.｡
+            ''')
+                time.sleep(1)
+                bot.edit_message_text(chat_id=message.chat.id, message_id=messagetoedit.message_id, text='''
+　 　　　 _ _　 ξ
+　　　 (´ 　 ｀ヽ、　　 　 __
+　　⊂,_と（　 　 ）⊃　 （__(） I miss her...
+　　　　　　Ｖ　Ｖ　　　　　　 　 　 ﾟ*･:.｡
+            ''')
+                time.sleep(2)
+                bot.edit_message_text(chat_id=message.chat.id, message_id=messagetoedit.message_id, text='''
+　 　∧,,,∧
+　 （ ・ω・） I love Alice!
+　　( つ旦O
+　　と＿)_)
+            ''')
+                time.sleep(0.5)
+#____________________________________________________________________________________________________________________________________
+
+        elif message.text == "DT":
+            messaget = bot.send_message(message.chat.id, '''
+
+░█▀▀▄
+░█─░█
+░█▄▄▀
+        ''')
+            time.sleep(0.5)
+            for _ in range(30):
+                bot.edit_message_text(chat_id=message.chat.id, message_id=messaget.message_id, text='''
+
+░█▀▀▄ ▀█▀
+░█─░█ ░█─
+░█▄▄▀ ▄█▄
+            ''')
+                time.sleep(0.5)
+                bot.edit_message_text(chat_id=message.chat.id, message_id=messaget.message_id, text='''
+
+░█▀▀▄ ▀█▀ ░█▀▄▀█
+░█─░█ ░█─ ░█░█░█
+░█▄▄▀ ▄█▄ ░█──░█
+            ''')
+                time.sleep(0.5)
+                bot.edit_message_text(chat_id=message.chat.id, message_id=messaget.message_id, text='''
+
+░█▀▀▄ ▀█▀ ░█▀▄▀█ ─█▀▀█
+░█─░█ ░█─ ░█░█░█ ░█▄▄█
+░█▄▄▀ ▄█▄ ░█──░█ ░█─░█
+            ''')
+                time.sleep(0.5)
+                bot.edit_message_text(chat_id=message.chat.id, message_id=messaget.message_id, text='''
+░█▀▀█ ░█▀▀█ ░█▀▀▀█
+░█▀▀▄ ░█▄▄▀ ░█──░█
+░█▄▄█ ░█─░█ ░█▄▄▄█
+            ''')
+                time.sleep(0.5)
+                bot.edit_message_text(chat_id=message.chat.id, message_id=messaget.message_id, text='''
+
+░█▀▀▄
+░█─░█
+░█▄▄▀
+                ''')
+                time.sleep(0.5)
+#____________________________________________________________________________________________________________________________________
         elif "y" or "x" or "y(x)" in message.text:
             global get_message
             if ("sin" or "cos" or "tan") in message.text:
