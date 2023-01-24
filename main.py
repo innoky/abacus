@@ -59,7 +59,7 @@ def lalala(message):
 　　と＿)_)
         ''')
             time.sleep(1)
-            for _ in range(30):
+            for _ in range(3):
                 bot.edit_message_text(chat_id=message.chat.id, message_id=messagetoedit.message_id, text='''
 　 　∧,,,∧
 　 （ ・◎・） slrrrp
@@ -96,6 +96,7 @@ def lalala(message):
 　　と＿)_)
             ''')
                 time.sleep(0.5)
+            bot.delete_message(message.chat.id, message.message_id)
 #____________________________________________________________________________________________________________________________________
 
         elif message.text == "DT":
@@ -106,7 +107,7 @@ def lalala(message):
 ░█▄▄▀
         ''')
             time.sleep(0.5)
-            for _ in range(30):
+            for _ in range(3):
                 bot.edit_message_text(chat_id=message.chat.id, message_id=messaget.message_id, text='''
 
 ░█▀▀▄ ▀█▀
@@ -141,7 +142,8 @@ def lalala(message):
 ░█▄▄▀
                 ''')
                 time.sleep(0.5)
-#____________________________________________________________________________________________________________________________________
+            bot.delete_message(message.chat.id, message.message_id)
+#___________________________________________________________________________________________________________________________________
         elif "y" or "x" or "y(x)" in message.text:
             global get_message
             if ("sin" or "cos" or "tan") in message.text:
