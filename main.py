@@ -6,6 +6,7 @@ import subprocess
 import sys
 import os.path
 from pylatexenc.latex2text import LatexNodes2Text
+from pylatexenc.latexencode import unicode_to_latex
 from PIL import Image
 import numpy as np
 
@@ -22,8 +23,6 @@ from telebot import types
 
 
 bot = telebot.TeleBot('5900150945:AAEILo4cgaVVO2rsdE9qUlB5ypM0t47-nrQ')
-
-
 
 @bot.message_handler(commands=['start'])
 
@@ -174,6 +173,7 @@ def lalala(message):
 #---------------------------------------------------------------------------
 #отрисовка графика
 #нижний предел интеграла
+
 def lower_lim(message, plus_low):
     plus_high = plus_low + " " + message.text
 
@@ -315,7 +315,12 @@ with open("diff_result.txt", "w") as file:
                 time.sleep(1)
                 bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text="Производная от вашей функии:",
                     reply_markup=None)
-                bot.send_message(call.message.chat.id, "(" + get_message.replace("(x)", "") + ")' = "+ f"<code>{text1}</code>", parse_mode="html")
+                global diff_glob
+                markup_diff = types.InlineKeyboardMarkup(row_width=1)
+                item1 = types.InlineKeyboardButton("Get Latex", callback_data='6')
+                diff_glob = ("(" + get_message.replace("(x)", "") + ")' = "+ text1)
+                markup_diff.add(item1)
+                bot.send_message(call.message.chat.id, diff_glob, parse_mode="html", reply_markup=markup_diff)
 
 
             elif call.data == '5':
@@ -326,6 +331,10 @@ with open("diff_result.txt", "w") as file:
                 bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text="Вот что мы нашли",
                     reply_markup=None)
                 bot.send_message(call.message.chat.id,  f"<code>{send_data}</code>", parse_mode="html")
+            elif call.data == '6':
+                a = unicode_to_latex(diff_glob)
+                bot.send_message(call.message.chat.id,  a)
+
     except Exception as e:
         print(repr(e))
 
