@@ -361,11 +361,41 @@ def query_text(query):
                         message_text="Выражение: \n" + f"<code>{query.query}</code>" + "\n \n" + "Корни: \n" + f"<code>{send_data_2}</code>", parse_mode="html")
                 )
                 bot.answer_inline_query(query.id, [r_sum])
-        # Учтем деление на ноль и подготовим 2 варианта развития событий
-
 
             except Exception as e:
                 print(query.query)
+        elif query.query == "DT":
+            dt_sum = types.InlineQueryResultArticle(
+                    id='1', title="🥃🥃",
+                    # Описание отображается в подсказке,
+                    # message_text - то, что будет отправлено в виде сообщения
+                    description=("Double cup"),
+                    input_message_content=types.InputTextMessageContent(
+                    message_text="🥃🥃", parse_mode="html")
+            )
+            bot.answer_inline_query(query.id, [dt_sum])
+        elif query.query == "alice":
+            al_sum = types.InlineQueryResultArticle(
+                    id='1', title="🤍",
+                    # Описание отображается в подсказке,
+                    # message_text - то, что будет отправлено в виде сообщения
+                    description=('''
+        　 　∧,,,∧
+        　 （ ・ω・） I love Alice!
+        　　( つ旦O
+        　　と＿)_)
+                '''),
+                    input_message_content=types.InputTextMessageContent(
+                    message_text='''
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀∧,,,∧
+        　 （ ・ω・） I love Alice!
+        　　( つ旦O
+        　　と＿)_)
+                ''', parse_mode="html")
+            )
+            bot.answer_inline_query(query.id, [al_sum])
+
+
     except AttributeError as ex:
         return
 
