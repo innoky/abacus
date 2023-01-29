@@ -4,6 +4,7 @@ import random
 import os
 import subprocess
 import sys
+import re
 import os.path
 from pylatexenc.latex2text import LatexNodes2Text
 from pylatexenc.latexencode import unicode_to_latex
@@ -19,8 +20,8 @@ from telebot import types
 
 
 
-#---------------------------------------------------------------------------
 
+#---------------------------------------------------------------------------
 
 bot = telebot.TeleBot('5900150945:AAHvX6JK7rTbvwokNtymBWrJ45zVQPHAe4M')
 
@@ -321,8 +322,7 @@ with open("diff_result.txt", "w") as file:
                 markup_diff = types.InlineKeyboardMarkup(row_width=1)
                 item1 = types.InlineKeyboardButton("Get Latex", callback_data='6')
                 diff_glob = ("(" + get_message.replace("(x)", "") + ")' = "+ text1)
-                markup_diff.add(item1)
-                bot.send_message(call.message.chat.id, diff_glob, parse_mode="html", reply_markup=markup_diff)
+                bot.send_message(call.message.chat.id, diff_glob, parse_mode="html")
 
 
             elif call.data == '5':
@@ -339,6 +339,35 @@ with open("diff_result.txt", "w") as file:
 
     except Exception as e:
         print(repr(e))
+
+@bot.inline_handler(func=lambda query: len(query.query) > 0)
+def query_text(query):
+    try:
+        if "y=" in query.query:
+            try:
+                express_f = query.query
+
+                clear_equat_inl = (express_f.replace("^", "**").replace("y(x)=", "").replace("y=", "")).replace("y=", "")
+                x = Symbol('x')
+                send_data_arr = solve(clear_equat_inl, x)
+                send_data_2 = '; \n'.join("x = " + str(value) for value in send_data_arr).replace("sqrt", "√")
+
+                r_sum = types.InlineQueryResultArticle(
+                        id='1', title="Корни: \n" + send_data_2,
+                        # Описание отображается в подсказке,
+                        # message_text - то, что будет отправлено в виде сообщения
+                        description=("Выражение: " + query.query),
+                        input_message_content=types.InputTextMessageContent(
+                        message_text="Выражение: \n" + f"<code>{query.query}</code>" + "\n \n" + "Корни: \n" + f"<code>{send_data_2}</code>", parse_mode="html")
+                )
+                bot.answer_inline_query(query.id, [r_sum])
+        # Учтем деление на ноль и подготовим 2 варианта развития событий
+
+
+            except Exception as e:
+                print(query.query)
+    except AttributeError as ex:
+        return
 
 
 
