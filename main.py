@@ -235,24 +235,38 @@ x = np.linspace(-5,5,100)
 try:
     if "x" in checker:
         fig = plt.figure()
+        fig.set_facecolor("#0E1621")
         ax = fig.add_subplot(1, 1, 1)
         ax.spines['left'].set_position('center')
+        ax.spines['left'].set_color('white')
+        ax.spines['bottom'].set_color('white')
         ax.spines['bottom'].set_position('zero')
         ax.spines['right'].set_color('none')
         ax.spines['top'].set_color('none')
+        ax.set_facecolor("#0E1621")
         ax.xaxis.set_ticks_position('bottom')
+        ax.tick_params(color='white')
+        ax.tick_params(axis='x', colors='white')
+        ax.tick_params(axis='y', colors='white')
         ax.yaxis.set_ticks_position('left')
         # plot the function
         plt.plot(x,y, 'r')
         plt.savefig('graphs/graphdraw.png')
     else:
         fig = plt.figure()
+        fig.set_facecolor("#0E1621")
         ax = fig.add_subplot(1, 1, 1)
         ax.spines['left'].set_position('center')
+        ax.spines['left'].set_color('white')
+        ax.spines['bottom'].set_color('white')
         ax.spines['bottom'].set_position('zero')
+        ax.tick_params(axis='x', colors='white')
+        ax.tick_params(axis='y', colors='white')
         ax.spines['right'].set_color('none')
         ax.spines['top'].set_color('none')
+        ax.set_facecolor("#0E1621")
         ax.xaxis.set_ticks_position('bottom')
+
         ax.yaxis.set_ticks_position('left')
         # plot the function
         plt.plot([y, y, y, y])
@@ -346,12 +360,35 @@ def query_text(query):
         if "y=" in query.query:
             try:
                 express_f = query.query
-
+            ############################################################################
                 clear_equat_inl = (express_f.replace("^", "**").replace("y(x)=", "").replace("y=", "")).replace("y=", "")
+                clear_equat_inl = clear_equat_inl.replace("0x", "0*x").replace("1x", "1*x").replace("2x", "2*x").replace("3x", "3*x").replace("4x", "4*x").replace("5x", "5*x").replace("6x", "6*x").replace("7x", "7*x").replace("8x", "8*x").replace("9x", "9*x")
+                clear_equat_inl = clear_equat_inl.replace("0(","0*(").replace("1(","1*(").replace("2(","2*(").replace("3(","3*(").replace("4(","4*(").replace("5(","5*(").replace("6(","6*(").replace("7(","7*(").replace("8(","8*(").replace("9(","9*(")
+                clear_equat_inl = clear_equat_inl.replace(")(",")*(").replace("x(","x*(").replace(" ", "")
+                clear_equat_inl = clear_equat_inl.replace("**", "^")
                 x = Symbol('x')
                 send_data_arr = solve(clear_equat_inl, x)
                 send_data_2 = '; \n'.join("x = " + str(value) for value in send_data_arr).replace("sqrt", "√")
+            ############################################################################
+                upload_eq = "result = (diff(" + clear_equat_inl.replace("y=", "").replace("^","**").replace("y(x)", "").replace("=", "") + "))"
+                with open("diff.py", "w") as file:
+                    file.write('''
+from sympy.solvers import solve
+from sympy import Symbol, diff, symbols, cos, sin, tan, sqrt
+x, y = symbols("x y") \n
+''' + upload_eq +'''
+with open("diff_result.txt", "w") as file:
+    file.write(str(result))''')
+                os.system("python3 diff.py")
 
+                with open("diff_result.txt", "r") as file:
+                    for line in file:
+                        text1 = str(line)
+                text1 = text1.replace("0x", "0*x").replace("1x", "1*x").replace("2x", "2*x").replace("3x", "3*x").replace("4x", "4*x").replace("5x", "5*x").replace("6x", "6*x").replace("7x", "7*x").replace("8x", "8*x").replace("9x", "9*x")
+                text1 = text1.replace("0(","0*(").replace("1(","1*(").replace("2(","2*(").replace("3(","3*(").replace("4(","4*(").replace("5(","5*(").replace("6(","6*(").replace("7(","7*(").replace("8(","8*(").replace("9(","9*(")
+                text1 = text1.replace(")(",")*(").replace("x(","x*(").replace(" ", "")
+                text1 = text1.replace("**", "^")
+                fx = query.query.replace("y", 'f(x)')
                 r_sum = types.InlineQueryResultArticle(
                         id='1', title="Корни: \n" + send_data_2,
                         # Описание отображается в подсказке,
@@ -360,7 +397,16 @@ def query_text(query):
                         input_message_content=types.InputTextMessageContent(
                         message_text="Выражение: \n" + f"<code>{query.query}</code>" + "\n \n" + "Корни: \n" + f"<code>{send_data_2}</code>", parse_mode="html")
                 )
-                bot.answer_inline_query(query.id, [r_sum])
+                r_diff = types.InlineQueryResultArticle(
+                        id='2', title="Производная: \n" + "f(x)' = " + text1,
+                        # Описание отображается в подсказке,
+                        # message_text - то, что будет отправлено в виде сообщения
+                        description=("Выражение: " + query.query.replace("y", "f(x)")),
+                        input_message_content=types.InputTextMessageContent(
+
+                        message_text="Выражение: \n" + f"<code>{fx}</code>" + "\n \n" + "Производная: \n" + f"<code>f(x)' = {text1}</code>", parse_mode="html")
+                )
+                bot.answer_inline_query(query.id, [r_sum, r_diff])
 
             except Exception as e:
                 print(query.query)
