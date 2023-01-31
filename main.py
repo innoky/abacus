@@ -5,6 +5,7 @@ import os
 import subprocess
 import sys
 import re
+import sqlite3
 import os.path
 from pylatexenc.latex2text import LatexNodes2Text
 from pylatexenc.latexencode import unicode_to_latex
@@ -19,27 +20,40 @@ import telebot
 from telebot import types
 
 
+db = sqlite3.connect('server.db', check_same_thread=False)
+sql = db.cursor()
 
 
 #---------------------------------------------------------------------------
 
-bot = telebot.TeleBot('5900150945:AAHvX6JK7rTbvwokNtymBWrJ45zVQPHAe4M')
+bot = telebot.TeleBot('6034911129:AAGCeWmDB1Wgh6B4FDKoi3H_QeaHa07v9nk')
+
+
+
+#---------------------------------------------------------------------------
 
 @bot.message_handler(commands=['start'])
+def start(message):
+    bot.send_message(message.chat.id, 'Добро пожаловать в телеграмм бот проекта Abacus, подробно о моем функционале можно прочитать тут \n\n [Documentation](https://telegra.ph/Documentation-01-31)', parse_mode="MarkdownV2")
+    user_id = message.from_user.id
+    user_name = message.from_user.username
+    sql.execute(f"""CREATE TABLE IF NOT EXISTS users (
+        id TEXT,
+        username TEXT
+    )""")
+    db.commit()
 
+    sql.execute(f"SELECT id FROM users WHERE id = '{user_id}'")
+    if sql.fetchone() is None:
+        sql.execute(f"INSERT INTO users VALUES (?, ?)", (user_id, user_name))
+        db.commit()
+        print("registerd")
+        os.mkdir("users/"+ str(user_id))
+    else:
+        print("id EXISTS")
+        for value in sql.execute("SELECT * FROM users"):
+            print(value)
 
-
-#---------------------------------------------------------------------------
-
-
-
-def welcome(message):
-
-
-    # keyboard (Создание кнопок и приветствие)
-
-    bot.send_message(message.chat.id, 'Добро пожаловать, {0.first_name}!\nЯ - <b>{1.first_name}</b>, телеграмм бот HS Abacus!  Отправьте мне функцию вида y=x (Например y=x^2-six(x))'.format(message.from_user, bot.get_me()),
-        parse_mode='html')
 
 @bot.message_handler(content_types=['text'])
 
@@ -146,7 +160,10 @@ def lalala(message):
             bot.delete_message(message.chat.id, message.message_id)
 #___________________________________________________________________________________________________________________________________
         elif "y" or "x" or "y(x)" in message.text:
+            global user_ind
+            user_ind = message.from_user.id
             global get_message
+
             if ("sin" or "cos" or "tan") in message.text:
                 bot.send_message(message.chat.id, "<em>Функция переодическая, корни могут иметь период повторения</em>", parse_mode ='html')
             if "\\" in message.text:
@@ -217,6 +234,7 @@ def callback_inline(call):
                 bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text="Рисуем график...",
                     reply_markup=None)
                 time.sleep(1)
+                user_id = str(user_ind)
                 bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text="Отправляем график...",
                     reply_markup=None)
                 get_sub = get_message
@@ -251,7 +269,7 @@ try:
         ax.yaxis.set_ticks_position('left')
         # plot the function
         plt.plot(x,y, 'r')
-        plt.savefig('graphs/graphdraw.png')
+        plt.savefig("users/''' + user_id +'''/graphdraw.png")
     else:
         fig = plt.figure()
         fig.set_facecolor("#0E1621")
@@ -270,14 +288,14 @@ try:
         ax.yaxis.set_ticks_position('left')
         # plot the function
         plt.plot([y, y, y, y])
-        plt.savefig('graphs/graphdraw.png')
+        plt.savefig("users/''' + user_id +'''/graphdraw.png")
 except SyntaxError:
-    os.remove("graphs/graphdraw.png")
+    print("ok")
 ''')
                 os.system("python3 graphdraw.py")
                 bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text="<code>График вашей функции:</code>", parse_mode = "html",
                     reply_markup=None)
-                bot.send_photo(call.message.chat.id, open('graphs/graphdraw.png', 'rb'));
+                bot.send_photo(call.message.chat.id, open('users/'+user_id+'/graphdraw.png', 'rb'));
 
             elif call.data == '3':
                 clear_equat = (get_message.replace("^", "**").replace("y(x)=", "").replace("y=", "")).replace("y=", "")
