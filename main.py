@@ -65,8 +65,12 @@ def start(message):
 
 def lalala(message):
     if message.chat.type == 'private':
-#________________________________________________________________________________________________________________
-        if message.text == "Alice":
+#______________________________________________________________________________________________________
+        calc_data = message.text.replace("+","").replace("-","").replace("*","").replace("/","").replace(" ","").replace("0(","0*(").replace("1(","1*(").replace("2(","2*(").replace("3(","3*(").replace("4(","4*(").replace("5(","5*(").replace("6(","6*(").replace("7(","7*(").replace("8(","8*(").replace("9(","9*(").replace(")(",")*(").replace("^","")
+        if calc_data.isdigit():
+            bot.send_message(message.chat.id, eval(message.text.replace("^", "**")))
+
+        elif message.text == "Alice":
             messagetoedit = bot.send_message(message.chat.id, '''
 　 　∧,,,∧
 　 （ ・ω・） I love Alice!
@@ -375,6 +379,7 @@ with open("diff_result.txt", "w") as file:
 @bot.inline_handler(func=lambda query: len(query.query) > 0)
 def query_text(query):
     try:
+        calc_data = query.query.replace("+","").replace("-","").replace("*","").replace("/","").replace(" ","").replace("0(","0*(").replace("1(","1*(").replace("2(","2*(").replace("3(","3*(").replace("4(","4*(").replace("5(","5*(").replace("6(","6*(").replace("7(","7*(").replace("8(","8*(").replace("9(","9*(").replace(")(",")*(").replace("^", "")
         if "y=" in query.query:
             try:
                 express_f = query.query
@@ -428,6 +433,7 @@ with open("diff_result.txt", "w") as file:
 
             except Exception as e:
                 print(query.query)
+
         elif query.query == "DT":
             dt_sum = types.InlineQueryResultArticle(
                     id='1', title="🥃🥃",
@@ -438,6 +444,20 @@ with open("diff_result.txt", "w") as file:
                     message_text="🥃🥃", parse_mode="html")
             )
             bot.answer_inline_query(query.id, [dt_sum])
+        elif calc_data.isdigit():
+            try:
+                matched = query.query.replace("^", "**")
+                calc_sum = types.InlineQueryResultArticle(
+                        id='1', title="= " + str(eval(matched)),
+                    # Описание отображается в подсказке,
+                    # message_text - то, что будет отправлено в виде сообщения
+                        description=("Выражение: " + query.query),
+                        input_message_content=types.InputTextMessageContent(
+                        message_text=f"Значение выражения: \n<code>{query.query} = {eval(matched)}</code>", parse_mode="html")
+                        )
+                bot.answer_inline_query(query.id, [calc_sum])
+            except Exception as e:
+                print(query.query)
         elif query.query == "alice":
             al_sum = types.InlineQueryResultArticle(
                     id='1', title="🤍",
