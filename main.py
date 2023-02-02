@@ -13,12 +13,95 @@ from PIL import Image
 import numpy as np
 
 from sympy.solvers import solve
+from sympy import Symbol, diff, cos, sin, tan, sqrt
+import sympy as sp
+import networkx as nx
+import numpy as np
+import networkx as nx
+import pylab as plt
+from networkx.drawing.nx_agraph import graphviz_layout
+import pygraphviz
+
+from sympy.solvers import solve
 from sympy import Symbol, diff, cos, sin, tan, sqrt, sympify
 
 import telebot
 
 from telebot import types
 
+
+class TraverseSolver:
+    def __init__(self, expr):
+        self.expr = expr
+
+    def _set_graph(self):
+        self.G = nx.nx_agraph.from_agraph(pygraphviz.AGraph(sp.dotprint(self.expr)))
+
+    def _set_map(self):
+        self._map = dict(zip(self.G.nodes, sp.preorder_traversal(self.expr)))
+
+    def _set_baseNode(self):
+        self._baseNode = next(iter(self.G.nodes))
+
+    def get_levels(self, mode='draw'):
+        if mode == 'draw':
+            d = nx.single_source_shortest_path_length(self.G, self._baseNode)
+            u, idx = np.unique(list(d.values()), return_index=True)
+            levels = [[str(m) for m in n] for n in reversed(np.split(np.array(list(d.keys())), idx[1:]))]
+            return levels
+        elif mode == 'traverse':
+            print(self.G)
+
+    def set_color(self, node, color):
+        self.G.nodes[node]['color'] = color
+
+    def display_graph(self, fig, n, nshape=(2, 3)):
+        ax = fig.add_subplot(*nshape, n)
+        pos = graphviz_layout(self.G, prog='dot')
+        colors = nx.get_node_attributes(self.G, 'color')
+        nx.draw(self.G, pos = pos, nodelist=[])
+        # draw self.G bbox by bbox:
+        for i, n in enumerate(self.G.nodes()):
+            nx.draw(nx.subgraph(self.G, [n]), pos={n:pos[n]}, labels = {n:f'${sp.latex(self._map[n])}$'}, nodelist=[],
+                    bbox=dict(facecolor=colors[n], edgecolor='black', boxstyle='round,pad=0.7'))
+
+    def solve(self, display_graph=True, nshape=(2, 3)):
+        self._set_graph() #store sp.srepr+code in each node
+        self._set_map() #sp.srepr+code -> expression (without evaluation)
+        self._set_baseNode() #sp.srepr+code of self.
+        solutionSteps = [self._map[self._baseNode]] #first step that contains initial expression
+        levels = self.get_levels(mode='draw')
+        if display_graph:
+            fig = plt.figure(figsize=(20,10))
+        #Step forward
+        for i in range(len(levels)):
+            if display_graph:
+                for node in self.G.nodes():
+                    self.set_color(node, 'lightblue')
+            anyChanges = False
+            for activeNode in levels[i]:
+                beforeEval = self._map[activeNode]
+                if display_graph:
+                    self.set_color(activeNode, 'yellow')
+                if not beforeEval.is_Atom:
+                    afterEval = beforeEval.func(*beforeEval.args, evaluate=True) #is beforeEval different with afterEval
+                    if beforeEval != afterEval:
+                        self._map[activeNode] = afterEval
+                        if display_graph:
+                            self.set_color(activeNode, 'lime')
+                        anyChanges = True
+            # Calculate value of baseNode() using changes, no evaluation
+            if anyChanges:
+                for j in range(i+1, len(levels)):
+                    for editNode in levels[j]:
+                        args = [self._map[node] for node in self.G[editNode]] #each ancestor
+                        if not self._map[editNode].is_Atom:
+                            self._map[editNode] = self._map[editNode].func(*args, evaluate=False)
+                solutionSteps.append(self._map[self._baseNode])
+            if display_graph:
+                self.display_graph(fig, n=len(solutionSteps), nshape=nshape)
+        plt.show()
+        return solutionSteps
 
 db = sqlite3.connect('server.db', check_same_thread=False)
 sql = db.cursor()
@@ -66,9 +149,20 @@ def start(message):
 def lalala(message):
     if message.chat.type == 'private':
 #______________________________________________________________________________________________________
+
         calc_data = message.text.replace("+","").replace("-","").replace("*","").replace("/","").replace(" ","").replace("0(","0*(").replace("1(","1*(").replace("2(","2*(").replace("3(","3*(").replace("4(","4*(").replace("5(","5*(").replace("6(","6*(").replace("7(","7*(").replace("8(","8*(").replace("9(","9*(").replace(")(",")*(").replace("^","")
         if calc_data.isdigit():
-            bot.send_message(message.chat.id, eval(message.text.replace("^", "**")))
+
+            steps = types.InlineKeyboardMarkup(row_width=1)
+            global calculus_exp
+            calculus_exp = message.text
+            get_steps = types.InlineKeyboardButton("Пошаговое решение", callback_data='6')
+
+
+            steps.add(get_steps)
+            bot.send_message(message.chat.id, "Значение выражения: \n" + message.text + " = " + str(eval( message.text.replace("^","**"))), reply_markup=steps)
+
+
 
         elif message.text == "Alice":
             messagetoedit = bot.send_message(message.chat.id, '''
@@ -355,10 +449,7 @@ with open("diff_result.txt", "w") as file:
                 bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text="Производная от вашей функии:",
                     reply_markup=None)
                 global diff_glob
-                markup_diff = types.InlineKeyboardMarkup(row_width=1)
-                item1 = types.InlineKeyboardButton("Get Latex", callback_data='6')
-                diff_glob = ("(" + get_message.replace("(x)", "") + ")' = "+ text1)
-                bot.send_message(call.message.chat.id, diff_glob, parse_mode="html")
+
 
 
             elif call.data == '5':
@@ -370,8 +461,9 @@ with open("diff_result.txt", "w") as file:
                     reply_markup=None)
                 bot.send_message(call.message.chat.id,  f"<code>{send_data}</code>", parse_mode="html")
             elif call.data == '6':
-                a = unicode_to_latex(diff_glob)
-                bot.send_message(call.message.chat.id,  a)
+                expr = sp.sympify(calculus_exp, evaluate=False)
+                steps = TraverseSolver(expr).solve(display_graph=False, nshape=(0,0))
+                bot.send_message(call.message.chat.id, "Выражение: \n" + "\n => ". join([sp.StrPrinter(dict(order='none'))._print(step) for step in steps]))
 
     except Exception as e:
         print(repr(e))
@@ -447,13 +539,16 @@ with open("diff_result.txt", "w") as file:
         elif calc_data.isdigit():
             try:
                 matched = query.query.replace("^", "**")
+                expr = sp.sympify(query.query, evaluate=False)
+                steps = TraverseSolver(expr).solve(display_graph=False, nshape=(0,0))
+                msgg = "Пошаговое решение: \n" + "\n => ". join([sp.StrPrinter(dict(order='none'))._print(step) for step in steps])
                 calc_sum = types.InlineQueryResultArticle(
                         id='1', title="= " + str(eval(matched)),
                     # Описание отображается в подсказке,
                     # message_text - то, что будет отправлено в виде сообщения
                         description=("Выражение: " + query.query),
                         input_message_content=types.InputTextMessageContent(
-                        message_text=f"Значение выражения: \n<code>{query.query} = {eval(matched)}</code>", parse_mode="html")
+                        message_text=f"Значение выражения: \n<code>{query.query} = {eval(matched)}</code>\n\n" + msgg, parse_mode="html")
                         )
                 bot.answer_inline_query(query.id, [calc_sum])
             except Exception as e:
