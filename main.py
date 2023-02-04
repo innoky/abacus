@@ -1,5 +1,6 @@
 #---------------------------------------------------------------------------
 import time
+from random import randint
 import random
 import os
 import subprocess
@@ -12,6 +13,7 @@ from pylatexenc.latexencode import unicode_to_latex
 from PIL import Image
 import numpy as np
 
+import speech_recognition as sr
 from sympy.solvers import solve
 from sympy import Symbol, diff, cos, sin, tan, sqrt
 import sympy as sp
@@ -22,13 +24,41 @@ import pylab as plt
 from networkx.drawing.nx_agraph import graphviz_layout
 import pygraphviz
 
+import soundfile as sf
 from sympy.solvers import solve
 from sympy import Symbol, diff, cos, sin, tan, sqrt, sympify
+
+from subprocess import Popen
+from speech_recognition import (Recognizer, AudioFile)
+from speech_recognition import (UnknownValueError, RequestError)
+
 
 import telebot
 
 from telebot import types
 
+class SpeechOggAudioFileToText:
+    def __init__(self):
+        self.recognizer = Recognizer()
+
+    def ogg_to_wav(self, file):
+        files = os.listdir(os.curdir)
+        args = ['ffmpeg','-i', file, 'test'+ str(len(files)) +'.wav']
+        process = Popen(args)
+        process.wait()
+    @property
+    def text(self):
+        files = os.listdir(os.curdir)
+        AUDIO_FILE = 'test'+ str(len(files)-1) +'.wav'
+        with AudioFile(AUDIO_FILE) as source:
+            audio = self.recognizer.record(source)
+        try:
+            text = self.recognizer.recognize_google(audio, language='RU')
+            return text
+        except UnknownValueError:
+            print("Не удаётся распознать аудио файл")
+        except RequestError as error:
+            print("Не удалось запросить результаты: {0}".format(error))
 
 class TraverseSolver:
     def __init__(self, expr):
@@ -578,8 +608,39 @@ with open("diff_result.txt", "w") as file:
     except AttributeError as ex:
         return
 
+@bot.message_handler(content_types=['voice'])
 
+def voice_processing(message):
+    file_info = bot.get_file(message.voice.file_id)
+    user_id = message.from_user.id
+    downloaded_file = bot.download_file(file_info.file_path)
+    files = os.listdir(os.curdir)
+    with open(str(user_id) + str(len(files)) +'.ogg', 'wb') as new_file:
+        new_file.write(downloaded_file)
 
+    speech_ogg = SpeechOggAudioFileToText()
+    speech_ogg.ogg_to_wav(str(user_id) + str(len(files)) +'.ogg')
+    global get_message
+    global user_ind
+    user_ind = message.from_user.id
+    if "y" or "x" or "y(x)" in speech_ogg.text:
+        if ("sin" or "cos" or "tan") in speech_ogg.text:
+            bot.send_message(message.chat.id, "<em>Функция переодическая, корни могут иметь период повторения</em>", parse_mode ='html')
+        if "\\" in speech_ogg.text:
+            get_message = LatexNodes2Text().latex_to_text(speech_ogg.text.replace("\\"+"dfrac", "\\"+"frac")).lower().replace(" ","")
+        else:
+            get_message = speech_ogg.text.lower().replace(" ","")
+        get_message = get_message.replace("0x", "0*x").replace("1x", "1*x").replace("2x", "2*x").replace("3x", "3*x").replace("4x", "4*x").replace("5x", "5*x").replace("6x", "6*x").replace("7x", "7*x").replace("8x", "8*x").replace("9x", "9*x")
+        get_message = get_message.replace("0(","0*(").replace("1(","1*(").replace("2(","2*(").replace("3(","3*(").replace("4(","4*(").replace("5(","5*(").replace("6(","6*(").replace("7(","7*(").replace("8(","8*(").replace("9(","9*(")
+        get_message = get_message.replace(")(",")*(").replace("x(","x*(")
+ 			# keyboard (Создание кнопок под текстом)
+        markup = types.InlineKeyboardMarkup(row_width=2)
+        item1 = types.InlineKeyboardButton("Посчитать интеграл", callback_data='1')
+        item2 = types.InlineKeyboardButton("Нарисовать график", callback_data='2')
+        item3 = types.InlineKeyboardButton("Найти корни", callback_data='3')
+        item4 = types.InlineKeyboardButton("Производная (Beta)", callback_data='4')
+        markup.add(item1, item2, item3, item4)
+        bot.send_message(message.chat.id, f"<code>{get_message}</code>", parse_mode='html', reply_markup=markup)
 # Старт
 bot.polling(none_stop=True)
 
