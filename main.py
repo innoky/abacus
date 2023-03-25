@@ -37,7 +37,7 @@ import telebot
 
 from telebot import types
 
-openai.api_key = "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"
+openai.api_key = "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"
 
 def generate_response(text):
     prompt = text
