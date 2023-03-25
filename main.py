@@ -12,7 +12,7 @@ from pylatexenc.latex2text import LatexNodes2Text
 from pylatexenc.latexencode import unicode_to_latex
 from PIL import Image
 import numpy as np
-
+import openai
 import speech_recognition as sr
 from sympy.solvers import solve
 from sympy import Symbol, diff, cos, sin, tan, sqrt
@@ -37,6 +37,20 @@ import telebot
 
 from telebot import types
 
+openai.api_key = "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"
+
+def generate_response(text):
+    prompt = text
+
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {"role": "system",
+             "content": "Ты - система которая рассказывает как строить графики математических функций. В своих ответах не используй ссылки на другие сайты."},
+            {"role": "user", "content": "Как построить график следующей функции? : " + prompt}
+        ]
+    )
+    return response.choices[0].message.content
 class SpeechOggAudioFileToText:
     def __init__(self):
         self.recognizer = Recognizer()
@@ -423,7 +437,12 @@ except SyntaxError:
                 os.system("python3 graphdraw.py")
                 bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text="<code>График вашей функции:</code>", parse_mode = "html",
                     reply_markup=None)
-                bot.send_photo(call.message.chat.id, open('users/'+user_id+'/graphdraw.png', 'rb'));
+                markup = types.InlineKeyboardMarkup(row_width=2)
+                item_howto = types.InlineKeyboardButton("Посчитать интеграл", callback_data='10')
+
+
+                markup.add(item_howto)
+                bot.send_photo(call.message.chat.id, open('users/'+user_id+'/graphdraw.png', 'rb'), reply_markup=markup);
 
             elif call.data == '3':
                 clear_equat = (get_message.replace("^", "**").replace("y(x)=", "").replace("y=", "")).replace("y=", "")
@@ -448,6 +467,11 @@ except SyntaxError:
                         reply_markup=markup_com)
                 else:
                     bot.send_message(call.message.chat.id, f"<code>{send_data}</code>", parse_mode="html")
+            elif call.data == '10':
+
+                msg = bot.send_message(call.message.chat.id, '⌛')
+                response = generate_response(get_message)
+                bot.edit_message_text(chat_id=call.message.chat.id, message_id=msg.message_id, text=response)
 
             elif call.data == '4':
                 upload_eq = "result = (diff(" + get_message.replace("y=", "").replace("^","**").replace("y(x)", "").replace("=", "") + "))"
